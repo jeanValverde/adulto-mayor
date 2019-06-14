@@ -1,0 +1,160 @@
+
+
+
+CREATE TABLE contrasena (
+    id_contrasena      NUMBER NOT NULL,
+    contrasena         VARCHAR2(60) NOT NULL,
+    estado             CHAR(1) NOT NULL,
+    fecha_creacion     DATE NOT NULL,
+    cod_recuperacion   NUMBER NOT NULL,
+    rol                VARCHAR2(20) NOT NULL,
+    id_usuario         NUMBER NOT NULL
+);
+
+ALTER TABLE contrasena ADD CONSTRAINT contrasena_pk PRIMARY KEY ( id_contrasena );
+
+CREATE TABLE menu (
+    id_menu       NUMBER NOT NULL,
+    tipo_menu     VARCHAR2(45) NOT NULL,
+    descripcion   VARCHAR2(45) NOT NULL,
+    dia           VARCHAR2(30) NOT NULL,
+    foto          VARCHAR2(100) NOT NULL
+);
+
+ALTER TABLE menu ADD CONSTRAINT menu_pk PRIMARY KEY ( id_menu );
+
+CREATE TABLE servicio_alimentacion (
+    id_servicio_alimentacion   NUMBER NOT NULL,
+    fecha                      TIMESTAMP NOT NULL,
+    tip__insumo                VARCHAR2(45) NOT NULL,
+    tipo_medida                VARCHAR2(45) NOT NULL,
+    descripcion                VARCHAR2(45) NOT NULL,
+    id_menu                    NUMBER NOT NULL,
+    id_usuario                 NUMBER NOT NULL
+);
+
+ALTER TABLE servicio_alimentacion ADD CONSTRAINT servicio_alimentacion_pk PRIMARY KEY ( id_servicio_alimentacion );
+
+CREATE TABLE servicio_emergencia (
+    id_servicio_emergencia   NUMBER NOT NULL,
+    estado                   CHAR(1) NOT NULL,
+    latitud                  VARCHAR2(60) NOT NULL,
+    longitud                 VARCHAR2(60) NOT NULL,
+    id_usuario               NUMBER NOT NULL
+);
+
+ALTER TABLE servicio_emergencia ADD CONSTRAINT servicio_emergencia_pk PRIMARY KEY ( id_servicio_emergencia );
+
+CREATE TABLE sesiones_terapia (
+    id_sesion_terapia   NUMBER NOT NULL,
+    fecha               TIMESTAMP NOT NULL,
+    nombre_terapia      VARCHAR2(45) NOT NULL,
+    id_usuario          NUMBER NOT NULL,
+    id_terapeuta        NUMBER NOT NULL
+);
+
+ALTER TABLE sesiones_terapia ADD CONSTRAINT sesiones_terapia_pk PRIMARY KEY ( id_sesion_terapia );
+
+CREATE TABLE token_sesion (
+    id_token       NUMBER NOT NULL,
+    token          VARCHAR2(500) NOT NULL,
+    fecha_sesion   TIMESTAMP NOT NULL,
+    maquina        VARCHAR2(30) NOT NULL,
+    latitud        NUMBER NOT NULL,
+    longitud       NUMBER NOT NULL,
+    ip             VARCHAR2(100) NOT NULL,
+    estado         CHAR(1) NOT NULL,
+    id_usuario     NUMBER NOT NULL
+);
+
+ALTER TABLE token_sesion ADD CONSTRAINT token_sesion_pk PRIMARY KEY ( id_token );
+
+CREATE TABLE usuario (
+    id_usuario         NUMBER NOT NULL,
+    correo             VARCHAR2(30) NOT NULL,
+    estado             CHAR(1) NOT NULL,
+    fecha_nacimiento   DATE NOT NULL,
+    materno            VARCHAR2(45) NOT NULL,
+    nombre             VARCHAR2(30) NOT NULL,
+    numero_telefono    NUMBER(10) NOT NULL,
+    paterno            VARCHAR2(45) NOT NULL,
+    rut                VARCHAR2(9) NOT NULL,
+    direccion          VARCHAR2(50) NOT NULL,
+    sexo               CHAR(1) NOT NULL
+);
+
+ALTER TABLE usuario ADD CONSTRAINT usuario_pk PRIMARY KEY ( id_usuario );
+
+ALTER TABLE contrasena
+    ADD CONSTRAINT contrasena_usuario_fk FOREIGN KEY ( id_usuario )
+        REFERENCES usuario ( id_usuario );
+
+ALTER TABLE servicio_alimentacion
+    ADD CONSTRAINT servicio_alimentacion_menu_fk FOREIGN KEY ( id_menu )
+        REFERENCES menu ( id_menu );
+
+--  ERROR: FK name length exceeds maximum allowed length(30) 
+ALTER TABLE servicio_alimentacion
+    ADD CONSTRAINT servicio_alimentacion_usuario_fk FOREIGN KEY ( id_usuario )
+        REFERENCES usuario ( id_usuario );
+
+ALTER TABLE servicio_emergencia
+    ADD CONSTRAINT servicio_emergencia_usuario_fk FOREIGN KEY ( id_usuario )
+        REFERENCES usuario ( id_usuario );
+
+ALTER TABLE sesiones_terapia
+    ADD CONSTRAINT sesiones_terapia_usuario_fk FOREIGN KEY ( id_usuario )
+        REFERENCES usuario ( id_usuario );
+
+ALTER TABLE sesiones_terapia
+    ADD CONSTRAINT sesiones_terapia_usuario_fkv2 FOREIGN KEY ( id_terapeuta )
+        REFERENCES usuario ( id_usuario );
+
+ALTER TABLE token_sesion
+    ADD CONSTRAINT token_sesion_usuario_fk FOREIGN KEY ( id_usuario )
+        REFERENCES usuario ( id_usuario );
+
+
+
+-- Informe de Resumen de Oracle SQL Developer Data Modeler: 
+-- 
+-- CREATE TABLE                             7
+-- CREATE INDEX                             0
+-- ALTER TABLE                             14
+-- CREATE VIEW                              0
+-- ALTER VIEW                               0
+-- CREATE PACKAGE                           0
+-- CREATE PACKAGE BODY                      0
+-- CREATE PROCEDURE                         0
+-- CREATE FUNCTION                          0
+-- CREATE TRIGGER                           0
+-- ALTER TRIGGER                            0
+-- CREATE COLLECTION TYPE                   0
+-- CREATE STRUCTURED TYPE                   0
+-- CREATE STRUCTURED TYPE BODY              0
+-- CREATE CLUSTER                           0
+-- CREATE CONTEXT                           0
+-- CREATE DATABASE                          0
+-- CREATE DIMENSION                         0
+-- CREATE DIRECTORY                         0
+-- CREATE DISK GROUP                        0
+-- CREATE ROLE                              0
+-- CREATE ROLLBACK SEGMENT                  0
+-- CREATE SEQUENCE                          0
+-- CREATE MATERIALIZED VIEW                 0
+-- CREATE MATERIALIZED VIEW LOG             0
+-- CREATE SYNONYM                           0
+-- CREATE TABLESPACE                        0
+-- CREATE USER                              0
+-- 
+-- DROP TABLESPACE                          0
+-- DROP DATABASE                            0
+-- 
+-- REDACTION POLICY                         0
+-- 
+-- ORDS DROP SCHEMA                         0
+-- ORDS ENABLE SCHEMA                       0
+-- ORDS ENABLE OBJECT                       0
+-- 
+-- ERRORS                                   1
+-- WARNINGS                                 0

@@ -1,0 +1,173 @@
+
+
+
+ALTER TABLE usuario RENAME COLUMN NUMERO_TELEFONO TO NUMERO_TELEFONICO;
+
+  CREATE OR REPLACE FORCE VIEW GET_CONTRASENAS_ACTIVAS  AS 
+  select ID_CONTRASENA , CONTRASENA , ESTADO , FECHA_CREACION , COD_RECUPERACION , ROL , ID_USUARIO  from contrasena where estado = 1;
+
+
+  CREATE OR REPLACE FORCE VIEW GET_LLAVE_CLAVE  AS 
+  select id_usuario,  SUBSTR(correo,1,4) || SUBSTR(RUT, LENGTH(RUT) - 3 , LENGTH(RUT) ) || SUBSTR(numero_telefonico, 2,3) llave from usuario;
+
+
+
+  CREATE OR REPLACE FORCE VIEW GET_TOKEN  AS 
+  select  id_token , token , fecha_sesion, maquina, latitud, longitud, ip, id_usuario , estado from token_sesion;
+
+
+
+  CREATE OR REPLACE FORCE VIEW GET_TOKEN_ACTIVO  AS 
+  SELECT ID_TOKEN , TOKEN , FECHA_SESION, MAQUINA , LATITUD , LONGITUD ,IP , ID_USUARIO , ESTADO  FROM TOKEN_SESION WHERE estado = 1;
+
+
+  CREATE OR REPLACE VIEW VALIDAR_USUARIO_IS_CONTRASENA  AS 
+  select u.id_usuario id_usuario  , u.rut  rut , u.nombre nombre ,  u.materno  materno , u.paterno paterno , 
+u.correo correo , u.estado estado , u.fecha_nacimiento fecha_nacimiento , u.numero_telefonico numero_telefonico,  u.sexo sexo , 
+c.contrasena contrasena 
+from usuario u join contrasena c on u.id_usuario=c.id_usuario where c.estado = 1 and u.estado = 1;
+
+
+
+  CREATE OR REPLACE FORCE VIEW VIEW_USUARIO AS 
+  SELECT id_usuario, rut , nombre || ' ' ||  paterno || ' ' || materno nombre_completo , TRUNC(months_between(sysdate,fecha_nacimiento)/12) edad  FROM usuario;
+
+
+drop  FUNCTION custom_auth;
+
+
+create or replace FUNCTION fn_get_token_activo(
+p_id_usuario IN usuario.id_usuario%TYPE)
+return number 
+is 
+v_id_token token_sesion.id_token%TYPE := 0;
+begin 
+select id_token into v_id_token from token_sesion where id_usuario = p_id_usuario and estado = 1;
+return (v_id_token);
+end fn_get_token_activo;
+
+
+
+create or replace FUNCTION fn_max_id_token
+return number 
+is
+v_max_id_token token_sesion.id_token%TYPE := 0;
+begin 
+select max(id_token) into v_max_id_token from token_sesion ;
+return (v_max_id_token);
+end fn_max_id_token;
+
+create or replace FUNCTION fun_actualizarCntrasenaActiva(
+p_id_contrasena IN contrasena.id_contrasena%TYPE)
+RETURN NUMBER 
+is 
+begin 
+update contrasena set estado = 0 where id_contrasena =  p_id_contrasena;
+end fun_actualizarCntrasenaActiva;
+       
+       
+create or replace FUNCTION fun_max_id_contrasena
+return number 
+is
+v_id_contrasena contrasena.id_contrasena%TYPE := 0;
+begin 
+select max(id_contrasena) into v_id_contrasena from contrasena;
+return (v_id_contrasena);
+end fun_max_id_contrasena;
+
+
+create or replace FUNCTION fun_obtenerFechaSesionNueva(
+	   p_id_token IN token_sesion.id_token%TYPE)
+return TIMESTAMP
+is 
+v_fecha_nueva token_sesion.fecha_sesion%TYPE := sysdate;
+BEGIN 
+SELECT to_char((to_date(TO_CHAR( fecha_sesion, 'YYYY-MM-DD HH12:MI:SS' ),'YYYY-MM-DD HH12:MI:SS')+INTERVAL '27' MINUTE),'DD/MM/YY HH24:MI:SS') || ',000000000' 
+fecha_sesion into v_fecha_nueva FROM get_token_activo where id_token = p_id_token;
+return (v_fecha_nueva);
+end fun_obtenerFechaSesionNueva;
+
+
+
+create or replace FUNCTION fun_obtenerIDContrasenaActiva(
+	   p_id_usuario IN usuario.id_usuario%TYPE)
+return number 
+is 
+v_id_contrasena contrasena.id_contrasena%TYPE := 0;
+BEGIN 
+select id_contrasena into v_id_contrasena
+from contrasena where id_usuario = p_id_usuario and 
+estado = 1;
+return (v_id_contrasena);
+end fun_obtenerIDContrasenaActiva;
+
+
+
+
+create or replace PROCEDURE pr_insertar_token_nuevo(
+p_id_usuario IN usuario.id_usuario%TYPE, 
+p_token IN token_sesion.token%TYPE, 
+p_maquina IN token_sesion.maquina%TYPE, 
+p_latitu IN token_sesion.latitud%TYPE, 
+p_longitud IN token_sesion.longitud%TYPE, 
+p_ip IN token_sesion.ip%TYPE)
+IS 
+v_id_max_token token_sesion.id_token%TYPE := 0;
+v_id_token_activo token_sesion.id_token%TYPE := 0;
+begin 
+
+v_id_token_activo := fn_get_token_activo(p_id_usuario);
+
+update token_sesion set estado = 0 where id_token = v_id_token_activo;
+
+v_id_max_token := fn_max_id_token();
+
+INSERT INTO token_sesion ("ID_TOKEN", "TOKEN", "FECHA_SESION" , "MAQUINA", "LATITUD", "LONGITUD", "IP", "ID_USUARIO", "ESTADO") 
+VALUES ((v_id_max_token + 1), p_token , sysdate ,p_maquina , p_latitu , p_longitud ,  p_ip,  p_id_usuario , 1);
+
+  COMMIT;
+
+  end pr_insertar_token_nuevo;
+  
+  
+  create or replace PROCEDURE pr_upte_date_new_token(
+p_id_token IN token_sesion.id_token%TYPE)
+IS 
+v_fecha_nueva token_sesion.fecha_sesion%TYPE := sysdate;
+begin 
+
+v_fecha_nueva := fun_obtenerFechaSesionNueva(p_id_token);
+
+update token_sesion set fecha_sesion = v_fecha_nueva where id_token = p_id_token;
+
+COMMIT;
+
+end pr_upte_date_new_token;
+
+
+create or replace PROCEDURE proce_insertarContrasenaNueva(
+	   p_id_usuario IN usuario.id_usuario%TYPE,
+	   p_contrasena IN contrasena.contrasena%TYPE,
+	   p_codigo_recuperacion IN contrasena.cod_recuperacion%TYPE, 
+       p_rol IN contrasena.rol%TYPE)
+IS
+v_id_contrasena contrasena.id_contrasena%TYPE := 0;
+
+v_id_contrasena_max contrasena.id_contrasena%TYPE := 0;
+
+BEGIN
+
+v_id_contrasena  := fun_obteneridcontrasenaactiva(p_id_usuario);
+
+
+update contrasena set estado = 0 where id_contrasena =  v_id_contrasena;
+
+v_id_contrasena_max := fun_max_id_contrasena();
+
+
+  INSERT INTO contrasena ("ID_CONTRASENA", "CONTRASENA", "ESTADO" , "FECHA_CREACION", "COD_RECUPERACION", "ROL", "ID_USUARIO") 
+  VALUES ((v_id_contrasena_max + 1), p_contrasena , 1 ,sysdate , p_codigo_recuperacion , p_rol,  p_id_usuario );
+
+  COMMIT;
+
+END proce_insertarContrasenaNueva;

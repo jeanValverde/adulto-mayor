@@ -56,7 +56,8 @@ public class Usuario {
     @Column(name = "ESTADO", nullable = false)
     private boolean estado;
 
-  
+    @Column(name = "DIRECCION", nullable = false, length = 30)
+    private String direccion;
 
     public Integer getId() {
         return id;
@@ -138,7 +139,14 @@ public class Usuario {
         this.estado = estado;
     }
 
-    
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
     
     
 
