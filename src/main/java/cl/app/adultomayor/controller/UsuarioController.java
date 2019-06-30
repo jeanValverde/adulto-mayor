@@ -10,11 +10,13 @@ import cl.app.adultomayor.dto.Contrasena;
 import cl.app.adultomayor.dto.Usuario;
 import cl.app.adultomayor.dao.ProcedureQuery;
 import cl.app.adultomayor.dto.Token;
+import cl.app.adultomayor.dto.UsuarioContrasena;
 import cl.app.adultomayor.security.SecurityController;
 import cl.app.adultomayor.service.ContrasenaService;
 import cl.app.adultomayor.service.TokenService;
 import cl.app.adultomayor.service.UsuarioService;
 import cl.app.adultomayor.viewsdto.ViewUsuario;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -60,65 +62,65 @@ public class UsuarioController {
     @Autowired
     SecurityController securityController;
 
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public List<Usuario> objeterTodosUsuarios(@RequestHeader HttpHeaders headers) throws Exception {
-        boolean permiso = this.securityController.validadToken(headers);
-        if(permiso){
-            return usuarioService.getAllUsuario();
-        }
-        throw new Exception("403");
-    }
     
     @RequestMapping(value = "/public/all", method = RequestMethod.GET)
     public List<Usuario> objeterTodosUsuariosPublic() {
             return usuarioService.getAllUsuario();
     }
 
+    
     @RequestMapping(value = "/addUsuario", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody()
-    public Usuario addNewUser(@RequestBody Usuario usuarioNuevo) {
-        return this.usuarioService.addUsuario(usuarioNuevo);
+    public String addNewUser(@RequestBody UsuarioContrasena usuarioNuevo) throws Exception {  
+        
+        String resultado = this.securityController.registrarUsuarioWithContrasena(usuarioNuevo);
+        
+        if( resultado == "error"){
+            
+            throw new Exception(resultado);
+            
+        }
+        
+        return resultado ;
+     
+    }
+ 
+   
+    @PostMapping("/add")
+    public Usuario addUsuario(@RequestParam("rut") String rut,
+            @RequestParam("nombre") String nombre,
+            @RequestParam("paterno") String paterno,
+            @RequestParam("materno") String materno,
+            @RequestParam("sexo") char sexo , 
+            @RequestParam("fechaNacimiento") Date fechaNacimiento,
+            @RequestParam("correo") String correo,
+            @RequestParam("numeroTelefonico") Integer numeroTelefonico,
+            @RequestParam("estado") boolean estado,
+            @RequestParam("direccion") String direccion ) {
+        
+        Usuario usuario = new Usuario();
+        usuario.setRut(rut); 
+        usuario.setNombre(nombre); 
+        usuario.setPaterno(paterno); 
+        usuario.setMaterno(materno); 
+        usuario.setSexo(sexo); 
+        usuario.setFechaNacimiento(fechaNacimiento); 
+        usuario.setCorreo(correo); 
+        usuario.setNumeroTelefonico(numeroTelefonico); 
+        usuario.setEstado(estado); 
+        usuario.setDireccion(direccion);   
+        try{
+            
+            usuario = this.usuarioService.addUsuario(usuario);
+            
+        }catch(Exception ex){
+            System.out.println(ex.getMessage());
+            System.out.println(ex.getMessage());
+        }
+        
+        return this.usuarioService.addUsuario(usuario);
     }
 
-    @RequestMapping(value = "/addContrasena", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody()
-    public Contrasena addNewContrasena(@RequestBody Contrasena contrasena) {
-        return contrasena;
-        //this.contrasenaService.cre
-        // this.contrasenaService.crearNuevaContrasena(contrasena.getUsuario(), contrasena.getContrasena(), contrasena.getCodRecuperacion()  , contrasena.getRol() );
-    }
-
-    @RequestMapping(value = "/viewUsuario", method = RequestMethod.GET)
-    public List<ViewUsuario> objeterViewUsuario() {
-        return usuarioService.getAllViewUsuario();
-    }
-
-    @RequestMapping(value = "/tokens", method = RequestMethod.GET)
-    public List<Token> objeterView() {
-        return this.tokenService.getttt();
-    }
-
-    @RequestMapping(value = "/tokensAll", method = RequestMethod.GET)
-    public List<Token> objeterViewd() {
-        return this.tokenService.getPruebaj();
-    }
-
-    @RequestMapping(value = "/contraPrueba", method = RequestMethod.GET)
-    public boolean pruebaContra(@RequestParam("idUsuario") Integer idUusario,
-            @RequestParam("contrasena") String contrasena,
-            @RequestParam("cod") Integer cod,
-            @RequestParam("rol") String rol) {
-
-        return this.procedureQueryContrasena.insertNewContrasena(idUusario, contrasena, cod, rol);
-
-    }
-
-    @RequestMapping(value = "/validarToken", method = RequestMethod.GET)
-    public boolean pruebaToken(@RequestHeader HttpHeaders headers) {
-
-        return this.securityController.validadToken(headers);
-
-    }
 
     
     @PostMapping("/iniciarSesion")

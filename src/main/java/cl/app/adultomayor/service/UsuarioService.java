@@ -6,10 +6,16 @@
 package cl.app.adultomayor.service;
 
 import cl.app.adultomayor.dao.UsuarioDao;
+import cl.app.adultomayor.dao.ViewAdultoDao;
 import cl.app.adultomayor.dao.ViewLlaveUsuarioDao;
+import cl.app.adultomayor.dao.ViewServicioAlimentacionMenuDao;
+import cl.app.adultomayor.dao.ViewSesionesTerapiaDao;
 import cl.app.adultomayor.dao.ViewUsuarioDao;
 import cl.app.adultomayor.dto.Usuario;
+import cl.app.adultomayor.viewsdto.ViewAdulto;
 import cl.app.adultomayor.viewsdto.ViewLlaveUsuario;
+import cl.app.adultomayor.viewsdto.ViewServicioAlimentacionMenu;
+import cl.app.adultomayor.viewsdto.ViewSesionesTerapia;
 import cl.app.adultomayor.viewsdto.ViewUsuario;
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +34,21 @@ public class UsuarioService {
 
     @Autowired
     ViewUsuarioDao viewUsuario;
-    
+
     @Autowired
     ViewLlaveUsuarioDao viewLlaveUsuario;
+
+    @Autowired
+    ViewAdultoDao viewAdulto;
+    
+    @Autowired
+    ViewServicioAlimentacionMenuDao viewServicioAlimentacionMenu;
+    
+    @Autowired
+    ViewSesionesTerapiaDao viewSesionesTerapia;
+    
+    
+    
 
     public List<Usuario> getAllUsuario() {
         return this.usuarioDao.findAll();
@@ -39,8 +57,8 @@ public class UsuarioService {
     public Usuario addUsuario(Usuario nuevoUsuario) {
         return this.usuarioDao.save(nuevoUsuario);
     }
-    
-    public Usuario getUsuarioByRutOrCorreo(Integer rut , String correo) {
+
+    public Usuario getUsuarioByRutOrCorreo(Integer rut, String correo) {
         return this.usuarioDao.getUsuarioWithCorreoOrRut(rut, correo);
     }
 
@@ -48,18 +66,25 @@ public class UsuarioService {
         return (List<ViewUsuario>) this.viewUsuario.findAll();
     }
 
-    public Optional<Usuario> getUsuarioById(int id) {
-        return this.usuarioDao.findById(id);
-    }
+    public List<ViewAdulto> getAllAdultoMayor() {
+        return (List<ViewAdulto>) this.viewAdulto.findAll();
+    }  
 
-    public Usuario validarUsuarioWithContrasena(String contrasena, Integer rut, String correo ) {
+    public Usuario validarUsuarioWithContrasena(String contrasena, Integer rut, String correo) {
         return this.usuarioDao.validarUsuarioWithContrasena(contrasena, rut, correo);
     }
     
     
-    public Optional<ViewLlaveUsuario> getLlaveUsuario(Integer idUsuario ) {
+    public List<ViewServicioAlimentacionMenu> obtenerServicioAliemntacionJoinMenu(){
+        return (List<ViewServicioAlimentacionMenu>) this.viewServicioAlimentacionMenu.findAll(); 
+    } 
+    
+    public List<ViewSesionesTerapia> obtenerSesionesTerapia(){
+        return (List<ViewSesionesTerapia>) this.viewSesionesTerapia.findAll(); 
+    } 
+
+    public Optional<ViewLlaveUsuario> getLlaveUsuario(Integer idUsuario) {
         return this.viewLlaveUsuario.findById(idUsuario.longValue());
     }
-   
 
 }

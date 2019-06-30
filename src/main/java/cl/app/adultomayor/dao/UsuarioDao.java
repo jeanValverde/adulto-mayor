@@ -30,6 +30,6 @@ public interface UsuarioDao extends JpaRepository<Usuario, Integer> {
      @Query(value=" select * from usuario where rut = ?1 or correo = ?2 " , nativeQuery=true)
      Usuario getUsuarioWithCorreoOrRut(Integer rut, String correo);
 
-     
+      
      
 }

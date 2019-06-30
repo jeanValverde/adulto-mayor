@@ -9,6 +9,7 @@ import cl.app.adultomayor.dao.ProcedureQuery;
 import cl.app.adultomayor.dto.Contrasena;
 import cl.app.adultomayor.dto.Token;
 import cl.app.adultomayor.dto.Usuario;
+import cl.app.adultomayor.dto.UsuarioContrasena;
 import cl.app.adultomayor.service.ContrasenaService;
 import cl.app.adultomayor.service.TokenService;
 import cl.app.adultomayor.service.UsuarioService;
@@ -69,8 +70,6 @@ public class SecurityController {
 
         token = uuid.toString() + "_" + id + "_" + rol;
 
-        registrarToken(token, usuario);
-
         return token;
 
     }
@@ -93,9 +92,9 @@ public class SecurityController {
 
             token = this.tokenService.getTokenByIdUsuario(idUsuario);
 
-            if(validarHoraToken(token.getFechaSesion(), token)){
+            if (validarHoraToken(token.getFechaSesion(), token)) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
 
@@ -119,7 +118,7 @@ public class SecurityController {
                 if (min > 27) {
                     return this.procedureQuery.updateDateToken(token.getId());
                 }
-                
+
                 return true;
             } else {
                 return false;
@@ -131,6 +130,16 @@ public class SecurityController {
 
         }
 
+    }
+    
+    
+    public String obtenerIdHeader(HttpHeaders headers){
+        
+        List<String> headersAtri = headers.get("Authorization");
+          
+        String authorization = headersAtri.get(0);
+        
+        return obtenerDatosHeaders(authorization, "idUsuario");
     }
 
     private String obtenerDatosHeaders(String authorization, String accion) {
@@ -153,8 +162,62 @@ public class SecurityController {
         return dato;
     }
 
+    private Usuario registrarUsuario(UsuarioContrasena usuario) {
+        Usuario usuarioNuevo = new Usuario();
+        usuarioNuevo.setRut(usuario.getRut());
+        usuarioNuevo.setNombre(usuario.getNombre());
+        usuarioNuevo.setPaterno(usuario.getPaterno());
+        usuarioNuevo.setMaterno(usuario.getMaterno());
+        usuarioNuevo.setSexo(usuario.getSexo());
+        usuarioNuevo.setFechaNacimiento(usuario.getFechaNacimiento());
+        usuarioNuevo.setCorreo(usuario.getCorreo());
+        usuarioNuevo.setNumeroTelefonico(usuario.getNumeroTelefonico());
+        usuarioNuevo.setEstado(usuario.isEstado());
+        usuarioNuevo.setDireccion(usuario.getDireccion());
+        return this.usuarioService.addUsuario(usuarioNuevo);
+    }
+
     //nuevos usuarios 
-    private void registrarToken(String token, Usuario usuario) {
+    public String registrarUsuarioWithContrasena(UsuarioContrasena usuario) {
+
+        Usuario usuarioNuevo = registrarUsuario(usuario);
+        
+        Contrasena contrasenaNueva = new Contrasena();
+        String llave = getLlavePrivada(usuarioNuevo.getId());
+        String contrasena = encriptarContrasena(usuario.getContrasena() , llave); 
+        contrasenaNueva.setContrasena(contrasena); 
+        contrasenaNueva.setCodRecuperacion(45);
+        contrasenaNueva.setEstado(true);
+        contrasenaNueva.setRol(usuario.getRol());
+        contrasenaNueva.setFechaCreacion(new Date());
+        contrasenaNueva.setUsuario(usuarioNuevo.getId());
+
+        Contrasena contrasenaRegistrada = this.contrasenaService.addContrasena(contrasenaNueva);
+        
+        if(contrasenaRegistrada.getId() != -1){
+            
+            Token token  = new Token();
+            token.setToken(generarToken(usuarioNuevo, usuario.getRol())); 
+            token.setEstado(true); 
+            token.setFechaSesion(new Date()); 
+            token.setMaquina("INDEFINIDO"); 
+            token.setLatitud(0); 
+            token.setLongitud(0);  
+            token.setIp("INDEFINIDO"); 
+            token.setIdUsuario(usuarioNuevo.getId());
+            
+            Token sesion = this.tokenService.addToken(token); 
+            
+            if(sesion.getId() != -1){
+                
+                return sesion.getToken();
+                
+            } 
+           
+        }
+        
+   
+        return "error";
 
     }
 
@@ -219,7 +282,7 @@ public class SecurityController {
         //buscar uusario 
         Token tokenObject = new Token();
         Usuario usuario = new Usuario();
-        
+
         try {
             Usuario usuarioTemporal = null;
             usuarioTemporal = this.usuarioService.getUsuarioByRutOrCorreo(rut, correo);
@@ -232,7 +295,7 @@ public class SecurityController {
                     contrasenaActiva = this.contrasenaService.getContrasenaByUsuario(usuario.getId());
                     String token = generarToken(usuario, contrasenaActiva.getRol());
                     //maquina , latitud , longitud , id
-                    boolean result = this.procedureQuery.insertNewToken(usuario.getId(), token , "SIN REGISTRO", 0, 0, "SIN REGISTRO");
+                    boolean result = this.procedureQuery.insertNewToken(usuario.getId(), token, "SIN REGISTRO", 0, 0, "SIN REGISTRO");
                     if (result) {
                         //buscar token insertado 
                         tokenObject = this.tokenService.getTokenByIdUsuario(usuario.getId());

@@ -39,7 +39,7 @@ public class Contrasena {
     @Column(name = "COD_RECUPERACION", nullable = false)
     private Integer codRecuperacion;
 
-    @Column(name = "ROL", nullable = false, length = 30)
+    @Column(name = "ROL", nullable = false, length = 20)
     private String rol;
 
     @Column(name = "ID_USUARIO", nullable = false)

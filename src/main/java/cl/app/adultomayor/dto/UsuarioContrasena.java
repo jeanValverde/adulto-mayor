@@ -6,59 +6,42 @@
 package cl.app.adultomayor.dto;
 
 import java.util.Date;
-import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
- * 
- * @author Clase P.O.J.O
+ *
+ * @author jean
  */
-@Entity 
-@Table(name = "USUARIO")
-public class Usuario {
+public class UsuarioContrasena {
 
-    @Column(name = "ID_USUARIO")
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "RUT", nullable = false, length = 9)
     private String rut;
 
-    @Column(name = "NOMBRE", nullable = false, length = 30)
     private String nombre;
 
-    @Column(name = "PATERNO", nullable = false, length = 45)
     private String paterno;
 
-    @Column(name = "MATERNO", nullable = false, length = 45)
     private String materno;
 
-    @Column(name = "SEXO", nullable = false, length = 1)
     private char sexo;
 
-    @Column(name = "FECHA_NACIMIENTO", nullable = false)
     private Date fechaNacimiento;
 
-    @Column(name = "CORREO", nullable = false, length = 30)
     private String correo;
- 
-    @Column(name = "NUMERO_TELEFONICO", nullable = false, length = 9)
+
     private Integer numeroTelefonico;
 
-    @Column(name = "ESTADO", nullable = false)
     private boolean estado;
 
-    @Column(name = "DIRECCION", nullable = false, length = 50)
     private String direccion;
- 
+
+    private String contrasena;
+
+    private Integer codRecuperacion;
+
+    private String rol;
+
+    private Integer usuario;
 
     public Integer getId() {
         return id;
@@ -148,6 +131,39 @@ public class Usuario {
         this.direccion = direccion;
     }
 
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
+
+    public Integer getCodRecuperacion() {
+        return codRecuperacion;
+    }
+
+    public void setCodRecuperacion(Integer codRecuperacion) {
+        this.codRecuperacion = codRecuperacion;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
+
+    public Integer getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Integer usuario) {
+        this.usuario = usuario;
+    }
+    
+    
     
 
 }

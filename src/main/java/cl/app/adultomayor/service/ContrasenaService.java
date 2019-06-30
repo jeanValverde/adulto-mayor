@@ -25,16 +25,13 @@ public class ContrasenaService {
     public List<Contrasena> getPrueba() {
         return this.contrasenaDao.findAll();
     }
-    
+
     public Contrasena getContrasenaByUsuario(Integer idUsuario) {
         return this.contrasenaDao.getContrasenaByUsuario(idUsuario);
     }
-    
-    
-        public Contrasena addUsuario(Contrasena contrasena) {
+
+    public Contrasena addContrasena(Contrasena contrasena) {
         return this.contrasenaDao.save(contrasena);
     }
-    
-    
 
 }
